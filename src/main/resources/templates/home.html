@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      xmlns:myOver="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Obzor</title>
+    <script src="/jquery/1.10.2/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js" integrity="sha384-W8fXfP3gkOKtndU4JGtKDvXbO53Wy8SZCQHczT5FMiiqmQfUpWbYdTil/SxwZgAN" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.min.js" integrity="sha384-skAcpIdS7UcVUC05LJ9Dxay8AXcDYfBJqt1CJ85S/CFujBsIzCIv+l9liuYLaMQ/" crossorigin="anonymous"></script>
+    <link type="image/png" sizes="192x192" rel="icon" href="https://i.ya-webdesign.com/images/bootstrap-svg-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+</head>
+<body>
+<header class="p-3 bg-dark text-white">
+    <div class="container">
+        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+            <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-white text-decoration-none">
+                <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"></use></svg>
+            </a>
+            <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+                <a href="#" class="navbar-brand px-2 text-secondary" th:href="@{/}">OBZOR</a>
+
+            </ul>
+
+            <form class="text-center" th:action="@{/search}">
+                <input type="search" name="keyword" class="form-control form-control-dark" placeholder="Search..." aria-label="Search">
+            </form>
+
+            <div class="row align-items-end">
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <a class="btn btn-outline-success" sec:authorize="isAuthenticated()" th:href="@{/add}">+</a>
+                    <a class="btn btn-outline-success" sec:authorize="isAnonymous()" th:href="@{/login}">Login</a>
+                    <a class="btn btn-outline-success" sec:authorize="isAuthenticated() " th:href="@{/profile}">Profile</a>
+                    <a class="btn btn-outline-danger" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<h5></h5>
+<div class="container">
+    <div class="row">
+        <div th:if="${homePage}">
+            <div>
+                <a style="color: red; font-size: 200%;" th:href="@{'/' + ${type_film}}">FILMS</a>
+                <div class="card-group row row-cols-1 row-cols-md-6 g-5">
+                    <div th:each="over: ${top_films}">
+                        <div class="card">
+                            <img style="height: 18rem; width: 12rem; align-content: center;" class="card-img-top">
+                            <div class="card-body">
+                                <a th:href="@{'/' + ${type_film.toString()} + '/'+${over.id}}"
+                                   style="text-decoration: none; color: black;">
+                                    <h5 class="card-title" th:text="${over.title}" style="text-align: left;">Card title</h5>
+                                    <a class="btn btn-success btn-sm  text-right" th:text="${over.rating}"></a>
+                                </a>
+                                <a class="col align-self-center" th:href="@{'/' + ${over.getType().toString()} + '/'+${over.getId()} + '/like'}"
+                                   style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                                    <i th:if="${over.meLiked}" class="fas fa-heart"></i>
+                                    <i th:if="${!over.meLiked}" class="far fa-heart"></i>
+                                    <a th:text="${over.likes}" style="text-decoration: none; color: black;"></a>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <a  style="color: red; font-size: 200%;" th:href="@{'/' + ${type_book}}">BOOKS</a>
+                <div class="card-group row row-cols-1 row-cols-md-6 g-5">
+                    <div th:each="over: ${top_books}">
+                        <div class="card text-center mx-2 my-2">
+                            <img style="height: 18rem; width: 12rem; align-content: center;" class="card-img-top">
+                            <div class="card-body">
+                                <a th:href="@{'/' + ${type_book.toString()} + '/'+${over.id}}"
+                                   style="text-decoration: none; color: black;">
+                                    <h6 class="card-title" th:text="${over.title}" style="text-align: left;">Card title</h6>
+                                    <a class="btn btn-success btn-sm  text-right" th:text="${over.rating}"></a>
+                                </a>
+                                <a class="col align-self-center" th:href="@{'/' + ${over.getType().toString()} + '/'+${over.getId()} + '/like'}"
+                                   style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                                    <i th:if="${over.meLiked}" class="fas fa-heart"></i>
+                                    <i th:if="${!over.meLiked}" class="far fa-heart"></i>
+                                    <a th:text="${over.likes}" style="text-decoration: none; color: black;"></a>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <a style="color: red; font-size: 200%;" th:href="@{'/' + ${type_game}}">GAMES</a>
+                <div class="card-group row row-cols-1 row-cols-md-6 g-5">
+                    <div th:each="over: ${top_games}">
+                        <div class="card text-center mx-2 my-2">
+                            <img style="height: 18rem; width: 12rem; align-content: center;" class="card-img-top">
+                            <div class="card-body">
+                                <a th:href="@{'/' + ${type_game.toString()} + '/'+${over.id}}"
+                                   style="text-decoration: none; color: black;">
+                                    <h6 class="card-title" th:text="${over.title}" style="text-align: left;">Card title</h6>
+                                    <a class="btn btn-success btn-sm  text-right" th:text="${over.rating}"></a>
+                                </a>
+                                <a class="col align-self-center" th:href="@{'/' + ${over.getType().toString()} + '/'+${over.getId()} + '/like'}"
+                                   style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                                    <i th:if="${over.meLiked}" class="fas fa-heart"></i>
+                                    <i th:if="${!over.meLiked}" class="far fa-heart"></i>
+                                    <a th:text="${over.likes}" style="text-decoration: none; color: black;"></a>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <h5></h5>
+        <div th:if="${pageOfType}">
+            <div class="row text-center" th:if="${overviews}">
+                <div class="col-lg-2">
+                    <h2 th:text="${type}" style="color: red; font-size: 200%;"></h2>
+                    <div class="dropdown">
+                        <a class="btn btn-secondary dropdown-toggle" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Sort by
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <a class="dropdown-item" th:href="@{'/' + ${type}(sort='rating_down')}">Rating down</a>
+                            <a class="dropdown-item" th:href="@{'/' + ${type}(sort='rating_up')}">Rating up</a>
+                            <a class="dropdown-item" th:href="@{'/' + ${type}(sort='new')}">Creation date down</a>
+                            <a class="dropdown-item" th:href="@{'/' + ${type}(sort='old')}">Creation date up</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-group row row-cols-1 row-cols-md-6 g-5">
+                <div th:each="over: ${overviews}">
+                    <div class="card text-center mx-2 my-2">
+                            <img style="height: 18rem; width: 12rem; align-content: center;" class="card-img-top">
+                        <div class="card-body">
+                            <a th:href="@{'/' + ${type.toString()} + '/'+${over.id}}"
+                            style="text-decoration: none; color: black;">
+                                    <h6 class="card-title" th:text="${over.title}" style="text-align: left;">Card title</h6>
+                                    <a class="btn btn-success btn-sm  text-right" th:text="${over.rating}"></a>
+                            </a>
+                            <a class="col align-self-center" th:href="@{'/' + ${over.getType().toString()} + '/'+${over.getId()} + '/like'}"
+                               style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                                        <i th:if="${over.meLiked}" class="fas fa-heart"></i>
+                                        <i th:if="${!over.meLiked}" class="far fa-heart"></i>
+                                <a th:text="${over.likes}" style="text-decoration: none; color: black;"></a>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${isOverview}">
+            <div class="container">
+                <form th:object="${viewOverview}">
+                        <a class="btn btn-outline-dark btn-sm" onclick="history.back();">back</a>
+                    <div class="container">
+                        <div class="row">
+                            <h3 class="col" th:text="${viewOverview.title}"></h3>
+                        </div>
+                        <p th:text="${viewOverview.type.name()}" style="text-align: left;"></p>
+                        <h4>Rating:</h4>
+                        <a class="btn btn-success btn-sm" th:text="${viewOverview.rating}"></a>
+                        <br>
+                        <form th:if="${!meRated}" th:action="@{'/' + ${viewOverview.getType().toString()} + '/'+${viewOverview.getId()} + '/rate'}">
+                            <input name="rating" value="5" type="number" class="rating" min=0 max=10 step=1 data-size="lg">
+                        </form>
+                       <a class="align-self-center" th:href="@{'/' + ${viewOverview.getType().toString()} + '/'+${viewOverview.getId()} + '/like'}"
+                           style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                            <i th:if="${viewOverview.meLiked}" class="fas fa-heart"></i>
+                            <i th:if="${!viewOverview.meLiked}" class="far fa-heart"></i>
+                            <a th:text="${viewOverview.likes}" style="text-decoration: none; color: black;"></a>
+                        </a>
+                        <h4 th:text="Description"></h4>
+                        <div th:utext="${viewOverview.html}" style="text-align: justify;">Content</div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${isCreateNewOverview}" sec:authorize="isAuthenticated()" >
+            <div class="container">
+                <div class="text-center">
+                    <h1>New overview</h1>
+                </div>
+                <form  th:action="@{/add}" th:object="${newOverview}"
+                       method="post" style="max-width: 600px; margin: 0 auto;" enctype="multipart/form-data">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" id="title" placeholder="Title" autocomplete="off" class="form-control"
+                                   th:field="*{title}" required/>
+                        </div>
+                        <h1></h1>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="FILMS" id="radioFilms" value="option1">
+                            <label class="form-check-label" for="radioFilms" >FILMS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="BOOKS" id="radioBooks" value="option2">
+                            <label class="form-check-label" for="radioBooks">BOOKS</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="GAMES" id="radioGames" value="option2">
+                            <label class="form-check-label" for="radioGames">GAMES</label>
+                        </div>
+
+                        <h1></h1>
+
+                        <div class="form-group">
+                            <textarea type="text" rows="4" id="content" placeholder="Content" class="form-control"
+                                      th:field="*{description}" autocomplete="off"></textarea>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Create</button>
+                        </div>
+                        <input th:type="hidden"  th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${profile}" sec:authorize="isAuthenticated()">
+            <div class="container">
+                <h3>MY PROFILE</h3>
+                <div th:object="${user}" style="text-align: left; font-size:20px;">
+                    <a>Name:</a>
+                    <a th:text="${user.surname}" ></a>
+                    <br>
+                    <a>Surname:</a>
+                    <a th:text="${user.name}"></a>
+                    <br>
+                    <a>Username:</a>
+                    <a th:text="${user.username}" ></a>
+                    <br>
+                    <a>Likes:</a>
+                    <i class="fas fa-heart"></i>
+                    <a th:text="${userLikes}" style="text-decoration: none; color: black;"></a>
+                </div>
+
+
+                <h3>MY OVERVIEWS</h3>
+                <form class="well form-search" th:action="@{/profile}">
+                    <input type="text" th:value="${keyword_profile}" name="keyword_profile" class="form-control" placeholder="Filter" required>
+                    <a class="btn btn-outline-danger" th:href="@{/profile}">Clear</a>
+
+                </form>
+                <table class="table table-striped table-bordered" id="myTable">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th onclick="sortTable(1)">Title</th>
+                        <th onclick="sortTable(2)">Type</th>
+                        <th onclick="sortTable(3)">Rating</th>
+                        <th onclick="sortTable(4)">Likes</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="myOver: ${myOverview}">
+                        <td>
+                            <a th:text="${myOver.title}" th:href="@{'/' + ${myOver.getType().toString()} + '/'+${myOver.getId()}}">
+                            </a>
+                        </td>
+                        <td th:text="${myOver.type.name()}">User ID</td>
+                        <td th:text="${myOver.rating}">User ID</td>
+                        <td>
+                            <a class="col align-self-center" th:href="@{'/' + ${myOver.getType().toString()} + '/'+${myOver.getId()} + '/like'}"
+                               style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                                <i th:if="${myOver.meLiked}" class="fas fa-heart"></i>
+                                <i th:if="${!myOver.meLiked}" class="far fa-heart"></i>
+                                <a th:text="${myOver.likes}" style="text-decoration: none; color: black;"></a>
+                            </a>
+                        </td>
+                        <td>
+                            <a class="col align-self-center"
+                               style="text-decoration: none; color: #11ff00;" th:href="@{'/profile/'+${myOver.id}+'/edit'}">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a class="col align-self-center"
+                               style="text-decoration: none; color: red;" th:href="@{'/profile/'+${myOver.id}+'/remove'}">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div th:if="${edit}">
+            <div class="container">
+                <div class="text-center">
+                    <h1>Edit overview</h1>
+                </div>
+                <form th:object="${editOverview}"  th:action="@{'/profile/'+${editOverview.id}+'/edit'}"
+                      th:method="post" style="max-width: 600px; margin: 0 auto;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" placeholder="Title" autocomplete="off" class="form-control"
+                                   name="title"
+                                   th:value="${editOverview.title}" required/>
+                        </div>
+                        <h1></h1>
+
+                        <div class="form-group">
+                            <textarea type="text" rows="4" placeholder="Content" class="form-control" id="conten"
+                                      name="description"
+                                      th:text="${editOverview.description}" autocomplete="off"/>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-primary">Edit</button>
+                        </div>
+                        <input th:type="hidden"  th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${search}">
+            <h2 style="color: red; font-size: 200%;">RESULT OF SEARCH</h2>
+            <div class="card-group">
+                <div th:each="over: ${findOverviews}">
+                    <div class="card text-center mx-2 my-2" style="width: 12rem; height: 22rem;">
+                        <img style="height: 18rem; width: 12rem; align-content: center;" class="card-img-top">
+                        <div class="card-body">
+                            <a th:href="@{'/' + ${over.getType().name()} + '/'+${over.id}}"
+                               style="text-decoration: none; color: black;">
+                                <h6 class="card-title" th:text="${over.title}" style="text-align: left;">Card title</h6>
+                                <a class="btn btn-success btn-sm  text-right" th:text="${over.rating}"></a>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+</script>
+<script>
+    var simplemde = new SimpleMDE({element: document.getElementById("content")});
+    var simplemde = new SimpleMDE({element: document.getElementById("conten")});
+</script>
+<script>
+    function sortTable(n) {
+        var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+        table = document.getElementById("myTable");
+        switching = true;
+        dir = "asc";
+        while (switching) {
+            switching = false;
+            rows = table.getElementsByTagName("TR");
+            for (i = 1; i < (rows.length - 1); i++) {
+                shouldSwitch = false;
+                x = rows[i].getElementsByTagName("TD")[n];
+                y = rows[i + 1].getElementsByTagName("TD")[n];
+                if (dir == "asc") {
+                    if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                } else if (dir == "desc") {
+                    if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                        shouldSwitch = true;
+                        break;
+                    }
+                }
+            }
+            if (shouldSwitch) {
+                rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                switching = true;
+                switchcount ++;
+            } else {
+                if (switchcount == 0 && dir == "asc") {
+                    dir = "desc";
+                    switching = true;
+                }
+            }
+        }
+    }
+</script>
+
+
+</body>
+</html>

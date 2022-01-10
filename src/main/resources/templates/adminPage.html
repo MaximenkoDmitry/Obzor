@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Obzor</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.2/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>
+    <link type="image/png" sizes="192x192" rel="icon" href="https://i.ya-webdesign.com/images/bootstrap-svg-icon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <div class="row align-items-end">
+        <a class="btn btn-outline-danger" sec:authorize="isAuthenticated()" th:href="@{/logout}">Logout</a>
+        <a type="button" class="btn btn-danger"
+           th:href="@{'/admin'}"> HOME</a>
+    </div>
+    <div th:if="${users}">
+        <h1>List of Users</h1>
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
+            <tr>
+                <th>User ID</th>
+                <th>Role</th>
+                <th>Username</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u: ${users}">
+                <td th:text="${u.id}">User ID</td>
+                <td th:text="${u.getRole().name()}">User ID</td>
+                <td><a th:text="${u.getUsername()}" th:href="@{'/admin/'+${u.id}}" ></a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div th:if="${showProfile}">
+        <div class="container">
+            <h3>PROFILE</h3>
+            <div th:object="${us}" style="text-align: left; font-size:20px;">
+                <a>Name:</a>
+                <a th:text="${us.name}" ></a>
+                <br>
+                <a>Surname:</a>
+                <a th:text="${us.surname}"></a>
+                <br>
+                <a>Username:</a>
+                <a th:text="${us.username}" ></a>
+                <br>
+                <a>Likes:</a>
+                <i class="fas fa-heart"></i>
+                <a th:text="${userLikes}" style="text-decoration: none; color: black;"></a>
+                <br>
+            </div>
+            <h3>MY OVERVIEWS</h3>
+            <a type="button" class="btn btn-danger"
+               th:href="@{'/admin/'+${us.id}+'/add'}"> + </a>
+            <form class="well form-search" th:action="@{'/admin/'+${us.id}}">
+                <input type="text" th:value="${keyword_profile}" name="keyword_profile" class="form-control" placeholder="Filter" required>
+                <a class="btn btn-outline-danger" th:href="@{'/admin/'+${us.id}}">Clear</a>
+
+            </form>
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Rating</th>
+                    <th>Likes</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="myOver: ${myOverview}">
+                    <td th:text="${myOver.id}">User ID</td>
+                    <td>
+                        <a th:text="${myOver.title}" th:href="@{'/admin/'+${us.id}+'/'+ ${myOver.id}+'/view'}">
+                        </a>
+                    </td>
+                    <td th:text="${myOver.type.name()}">User ID</td>
+                    <td th:text="${myOver.rating}">User ID</td>
+                    <td>
+                        <a class="col align-self-center"
+                           style="text-decoration: none; color: red;">
+                            <i class="fas fa-heart"></i>
+                            <a th:text="${myOver.likes}" style="text-decoration: none; color: black;"></a>
+                        </a>
+                    </td>
+                    <td>
+                        <a class="col align-self-center"
+                           style="text-decoration: none; color: #11ff00;" th:href="@{'/admin/'+${us.id}+'/'+ ${myOver.id}+'/edit'}">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a class="col align-self-center"
+                           style="text-decoration: none; color: red;" th:href="@{'/admin/'+${us.id}+'/'+ ${myOver.id}+'/remove'}">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div th:if="${createOverview}">
+        <div class="container">
+            <div class="text-center">
+                <h1>New overview</h1>
+            </div>
+            <form  th:action="@{'/admin/' + ${userCreator.id} + '/add'}" th:object="${newOverview}"
+                   method="post" style="max-width: 600px; margin: 0 auto;" enctype="multipart/form-data">
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" id="title" placeholder="Title" autocomplete="off" class="form-control"
+                               th:field="*{title}" required/>
+                    </div>
+                    <h1></h1>
+
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="FILMS" id="radioFilms" value="option1">
+                        <label class="form-check-label" for="radioFilms" >FILMS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="BOOKS" id="radioBooks" value="option2">
+                        <label class="form-check-label" for="radioBooks">BOOKS</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="GAMES" id="radioGames" value="option2">
+                        <label class="form-check-label" for="radioGames">GAMES</label>
+                    </div>
+
+                    <h1></h1>
+
+                    <div class="form-group">
+                            <textarea type="text" rows="4" id="content" placeholder="Content" class="form-control"
+                                      th:field="*{description}" autocomplete="off"></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                    <input th:type="hidden"  th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                </div>
+            </form>
+        </div>
+    </div>
+    <div th:if="${view}">
+        <div class="container">
+            <form th:object="${viewOverview}">
+                <div class="container">
+                    <div class="row">
+                        <h3 class="col" th:text="${viewOverview.title}"></h3>
+                    </div>
+                    <p th:text="${viewOverview.type.name()}" style="text-align: left;"></p>
+                    <h4>Rating:</h4>
+                    <a class="btn btn-success btn-sm" th:text="${viewOverview.rating}"></a>
+                    <br>
+                    <a class="align-self-center"
+                       style="text-decoration: none; color: red;" sec:authorize="isAuthenticated()">
+                        <i class="fas fa-heart"></i>
+                        <a th:text="${viewOverview.likes}" style="text-decoration: none; color: black;"></a>
+                    </a>
+                    <h4 th:text="Description"></h4>
+                    <div th:utext="${viewOverview.html}" style="text-align: justify;">Content</div>
+                </div>
+            </form>
+        </div>
+
+    </div>
+    <div th:if="${edit}">
+        <div class="container">
+            <div class="text-center">
+                <h1>Edit overview</h1>
+            </div>
+            <form th:object="${editOverview}"  th:action="@{'/admin/' + ${author.id} + '/' + ${editOverview.id}+ '/edit' }"
+                   th:method="post" style="max-width: 600px; margin: 0 auto;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" placeholder="Title" autocomplete="off" class="form-control"
+                               name="title"
+                               th:value="${editOverview.title}" required/>
+                    </div>
+                    <h1></h1>
+
+                    <div class="form-group">
+                            <textarea type="text" rows="4" placeholder="Content" class="form-control" id="conten"
+                                      name="description"
+                                      th:text="${editOverview.description}" autocomplete="off"/>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">Edit</button>
+                    </div>
+                    <input th:type="hidden"  th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+</script>
+<script>
+    var simplemde = new SimpleMDE({element: document.getElementById("content")});
+    var simplemde = new SimpleMDE({element: document.getElementById("conten")});
+</script>
+</body>
+</html>
